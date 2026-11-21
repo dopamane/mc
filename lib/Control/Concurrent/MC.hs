@@ -3,21 +3,18 @@ module Control.Concurrent.MC (mc) where
 import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Control.Monad
-import System.Process
+import Data.Maybe
 
-mc :: TVar Char -> TVar [(Char, String)] -> IO ()
-mc qkVar kmVar = newTChanIO >>= \t -> race_ (readKey t) (runKey t)
+mc :: Int -> TVar Char -> TVar [(Char, IO ())] -> IO ()
+mc cnt qVar mVar = newTChanIO >>= \t ->
+  race_ (reader qVar t) (runner cnt mVar t)
 
-readKey :: TChan Char -> IO ()
-readKey t = loop
+reader :: TVar Char -> TChan Char -> IO ()
+reader qVar t = loop
   where
-    loop = getChar >>= \c -> case c of
-      'q' -> return ()
-      _   -> atomically (writeTChan t c) >> loop
+    loop = getChar >>= \c -> readTVarIO qVar >>= \q ->
+      when (c /= q) $ atomically (writeTChan t c) >> loop
 
-runKey :: TChan Char -> IO ()
-runKey t = replicateConcurrently_ 64 $ forever $
-  atomically (readTChan t) >>= \c -> case c of
-    'a' -> callCommand "tonwav 420 | aplay"
-    'b' -> callCommand "tonwav -t 0.2 200 | aplay"
-    _   -> return ()
+runner :: Int -> TVar [(Char, IO ())] -> TChan Char -> IO ()
+runner cnt mVar t = replicateConcurrently_ cnt $ forever $ join $ atomically $
+  fmap (fromMaybe $ return ()) $ lookup <$> readTChan t <*> readTVar mVar

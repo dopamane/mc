@@ -21,7 +21,6 @@ library
   build-depends:
     async,
     base < 5,
-    process,
     stm
 
 executable mc
@@ -34,6 +33,7 @@ executable mc
   build-depends:
     base < 5,
     optparse-applicative,
+    process,
     mc,
     stm
 
