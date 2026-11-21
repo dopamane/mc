@@ -2,7 +2,6 @@ cabal-version:      3.0
 name:               mc
 version:            0.1.0.0
 synopsis:           Master of Ceremonies
--- description:
 homepage:           https://github.com/dopamane/mc
 license:            MIT
 license-file:       LICENSE
@@ -34,7 +33,9 @@ executable mc
   autogen-modules:  Paths_mc
   build-depends:
     base < 5,
-    mc
+    optparse-applicative,
+    mc,
+    stm
 
 test-suite test
   default-language: Haskell2010

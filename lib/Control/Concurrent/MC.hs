@@ -3,14 +3,10 @@ module Control.Concurrent.MC (mc) where
 import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Control.Monad
-import System.IO
 import System.Process
 
-mc :: IO ()
-mc = do
-  hSetBuffering stdin NoBuffering
-  t <- newTChanIO
-  race_ (readKey t) (runKey t)
+mc :: TVar Char -> TVar [(Char, String)] -> IO ()
+mc qkVar kmVar = newTChanIO >>= \t -> race_ (readKey t) (runKey t)
 
 readKey :: TChan Char -> IO ()
 readKey t = loop
