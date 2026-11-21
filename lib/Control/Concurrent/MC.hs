@@ -6,15 +6,14 @@ import Control.Monad
 import Data.Maybe
 
 mc :: Int -> TVar Char -> TVar [(Char, IO ())] -> IO ()
-mc cnt qVar mVar = newTChanIO >>= \t ->
-  race_ (reader qVar t) (runner cnt mVar t)
+mc c q m = newTChanIO >>= \t -> race_ (reader q t) (runner c m t)
 
 reader :: TVar Char -> TChan Char -> IO ()
-reader qVar t = loop
+reader qv t = loop
   where
-    loop = getChar >>= \c -> readTVarIO qVar >>= \q ->
+    loop = getChar >>= \c -> readTVarIO qv >>= \q ->
       when (c /= q) $ atomically (writeTChan t c) >> loop
 
 runner :: Int -> TVar [(Char, IO ())] -> TChan Char -> IO ()
-runner cnt mVar t = replicateConcurrently_ cnt $ forever $ join $ atomically $
-  fmap (fromMaybe $ return ()) $ lookup <$> readTChan t <*> readTVar mVar
+runner c m t = replicateConcurrently_ c $ forever $ join $ atomically $
+  fmap (fromMaybe $ return ()) $ lookup <$> readTChan t <*> readTVar m

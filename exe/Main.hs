@@ -2,6 +2,7 @@ module Main (main) where
 
 import Control.Concurrent.MC
 import Control.Concurrent.STM
+import Control.Exception
 import Control.Monad
 import Data.Version
 import Options.Applicative
@@ -11,15 +12,16 @@ import System.Process
 
 main :: IO ()
 main = do
-  CLI cnt qks kmp <- customExecParser prefs' $ pinfo $ showVersion version
-  qkVar <- case qks of
-    [qk] -> newTVarIO qk
-    _    -> fail "invalid quit key"
-  kmIO <- forM kmp $ \kv -> case kv of
-    ([k], cmd) -> return (k, callCommand cmd)
-    _ -> fail "invalid key map"
+  CLI c qs kvs <- customExecParser prefs' $ pinfo $ showVersion version
+  qv <- case qs of
+    [q] -> newTVarIO q
+    _   -> fail $ "invalid quit key: " ++ qs
+  km <- forM kvs $ \kv -> case kv of
+    ([k], cmd) -> return (k, putStrLn [k, ':'] >> callCommand cmd)
+    (ks , _  ) -> fail $ "invalid key: " ++ ks
   hSetBuffering stdin NoBuffering
-  mc cnt qkVar =<< newTVarIO kmIO
+  bracket (hGetEcho stdin <* hSetEcho stdin False) (hSetEcho stdin) $ const $
+    mc c qv =<< newTVarIO km
 
 prefs' :: ParserPrefs
 prefs' = prefs $ showHelpOnError <> showHelpOnEmpty
