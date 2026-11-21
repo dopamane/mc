@@ -8,44 +8,37 @@ license:            MIT
 license-file:       LICENSE
 author:             dopamane
 maintainer:         dwc1295@gmail.com
--- copyright:
+copyright:          David Cox
 category:           Concurrency
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
--- extra-source-files:
-
-common warnings
-    ghc-options: -Wall
+                    README.md
 
 library
-    import:           warnings
-    exposed-modules:  MyLib
-    -- other-modules:
-    -- other-extensions:
-    build-depends:    base ^>=4.20.2.0
-    hs-source-dirs:   lib
-    default-language: Haskell2010
+  default-language: Haskell2010
+  ghc-options:      -Wall -O2
+  hs-source-dirs:   lib
+  exposed-modules:  Control.Concurrent.MC
+  build-depends:    base < 5
 
 executable mc
-    import:           warnings
-    main-is:          Main.hs
+  default-language: Haskell2010
+  ghc-options:      -Wall -O2 -threaded
+  hs-source-dirs:   exe
+  main-is:          Main.hs
+  other-modules:    Paths_mc
+  autogen-modules:  Paths_mc
+  build-depends:
+    base < 5,
+    mc
+
+test-suite test
+  default-language: Haskell2010
     -- other-modules:
     -- other-extensions:
-    build-depends:
-        base ^>=4.20.2.0,
-        mc
-
-    hs-source-dirs:   exe
-    default-language: Haskell2010
-
-test-suite mc-test
-    import:           warnings
-    default-language: Haskell2010
-    -- other-modules:
-    -- other-extensions:
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
-    build-depends:
-        base ^>=4.20.2.0,
-        mc
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  build-depends:
+    base < 5,
+    mc

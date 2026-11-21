@@ -1,8 +1,6 @@
 module Main (main) where
 
-import qualified MyLib (someFunc)
+import Control.Concurrent.MC
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+main = mc
