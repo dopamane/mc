@@ -19,9 +19,10 @@ main = do
   km <- forM kvs $ \kv -> case kv of
     ([k], cmd) -> return (k, putStrLn [k, ':'] >> callCommand cmd)
     (ks , _  ) -> fail $ "invalid key: " ++ ks
+  kv <- newTVarIO km
   hSetBuffering stdin NoBuffering
   bracket (hGetEcho stdin <* hSetEcho stdin False) (hSetEcho stdin) $ const $
-    mc c qv =<< newTVarIO km
+    mc c qv kv getChar
 
 prefs' :: ParserPrefs
 prefs' = prefs $ showHelpOnError <> showHelpOnEmpty

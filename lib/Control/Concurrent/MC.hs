@@ -5,15 +5,21 @@ import Control.Concurrent.STM
 import Control.Monad
 import Data.Maybe
 
-mc :: Int -> TVar Char -> TVar [(Char, IO ())] -> IO ()
-mc c q m = newTChanIO >>= \t -> race_ (reader q t) (runner c m t)
+mc
+  :: Eq a
+  => Int               -- ^ concurrency factor
+  -> TVar a            -- ^ quit value
+  -> TVar [(a, IO ())] -- ^ IO map
+  -> IO a              -- ^ input value
+  -> IO ()
+mc c q m i = newTChanIO >>= \t -> race_ (reader q i t) (runner c m t)
 
-reader :: TVar Char -> TChan Char -> IO ()
-reader qv t = loop
+reader :: Eq a => TVar a -> IO a -> TChan a -> IO ()
+reader qv i t = loop
   where
-    loop = getChar >>= \c -> readTVarIO qv >>= \q ->
-      when (c /= q) $ atomically (writeTChan t c) >> loop
+    loop = i >>= \a -> readTVarIO qv >>= \q ->
+      when (a /= q) $ atomically (writeTChan t a) >> loop
 
-runner :: Int -> TVar [(Char, IO ())] -> TChan Char -> IO ()
+runner :: Eq a => Int -> TVar [(a, IO ())] -> TChan a -> IO ()
 runner c m t = replicateConcurrently_ c $ forever $ join $ atomically $
   fmap (fromMaybe $ return ()) $ lookup <$> readTChan t <*> readTVar m
