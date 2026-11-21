@@ -19,7 +19,11 @@ library
   ghc-options:      -Wall -O2
   hs-source-dirs:   lib
   exposed-modules:  Control.Concurrent.MC
-  build-depends:    base < 5
+  build-depends:
+    async,
+    base < 5,
+    process,
+    stm
 
 executable mc
   default-language: Haskell2010
